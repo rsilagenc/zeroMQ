@@ -1,12 +1,18 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(MyProject LANGUAGES C CXX)
 
-set(CMAKE_PREFIX_PATH "/usr/include")
+find_package(PkgConfig REQUIRED)
 
-find_package(ZeroMQ REQUIRED)
+pkg_check_modules(ZMQ REQUIRED libzmq)
 
-add_executable(MyProject demo1.cpp)
+# Include directories for libzmq
+include_directories(${ZMQ_INCLUDE_DIRS})
 
-target_link_libraries(MyProject PRIVATE ZeroMQ::libzmq)
+# Link directories for libzmq
+link_directories(${ZMQ_LIBRARY_DIRS})
 
-set_property(TARGET MyProject PROPERTY CXX_STANDARD 11)
+# Add your executable
+add_executable(my_project_demo demo1.cpp)
+
+# Link libzmq to your executable
+target_link_libraries(my_project_demo ${ZMQ_LIBRARIES})

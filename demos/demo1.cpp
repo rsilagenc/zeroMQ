@@ -13,7 +13,7 @@ void server(zmq::context_t& ctx)
 {
     std::cout << "server has started" << std::endl;
     zmq::socket_t socket1(ctx, zmq::socket_type::rep);
-    socket1.connect("inproc://address");
+    socket1.bind("inproc://address");
 
     while(true)
     {
@@ -25,7 +25,12 @@ void server(zmq::context_t& ctx)
         throw std::runtime_error("Failed to receive message on server side" + std::string(strerror(errno)));
     }
     std::string received_msg(static_cast<char*>(request1.data()), request1.size());
-        std::cout << "Server received: " << received_msg << std::endl;
+    std::cout << "Server received: " << received_msg << std::endl;
+
+    if (received_msg == "STOP") {
+            std::cout << "Server stopping..." << std::endl;
+            break;
+        }
 
     zmq::message_t reply1(3);
     memcpy(reply1.data(), "Hey", 3);
@@ -40,10 +45,10 @@ void client(zmq::context_t& ctx)
     socket2.connect("inproc://address");
     std::cout << "Connected to the Server!" << std::endl;
 
-    while(true)
+    for(int i = 0; i < 1; ++i)
     {
-    zmq::message_t request2(11);
-    memcpy(request2.data(), "hello back", 11);
+    zmq::message_t request2(2);
+    memcpy(request2.data(), "OK", 2);
     socket2.send(request2, zmq::send_flags::none);
 
     zmq::message_t reply2;
@@ -53,11 +58,12 @@ void client(zmq::context_t& ctx)
     }
     std::string received_msg(static_cast<char*>(reply2.data()), reply2.size());
     std::cout << "Client received: " << received_msg << std::endl;
-
     }
+
+    zmq::message_t stop_request(4);
+    memcpy(stop_request.data(), "STOP", 4);
+    socket2.send(stop_request, zmq::send_flags::none);
 }
-
-
 
 int main()
 {
